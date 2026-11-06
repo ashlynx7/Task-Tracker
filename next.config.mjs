@@ -2,10 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  outputFileTracingIncludes: {
-    '/api/auth/*': [
-      './node_modules/sql.js/dist/sql-wasm.wasm',
-    ],
+  experimental: {
+    outputFileTracingIncludes: {
+      '/api/auth/*': [
+        './node_modules/sql.js/dist/sql-wasm.wasm',
+      ],
+    },
   },
 
   webpack: (config, { isServer }) => {

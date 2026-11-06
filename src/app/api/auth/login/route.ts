@@ -32,10 +32,24 @@ export async function POST(req: NextRequest) {
     );
 
     if (!user) {
-      const fallbackDemo = {
-        alex_cs: { username: 'alex_cs', email: 'alex@college.edu', password_hash: '$2a$10$D8wJ7fUCPyHfUW4HhGg5M.m0tHqj9Q/1g7l0Hz8JQxVg2a8W9xIuG' },
-        jordan_dev: { username: 'jordan_dev', email: 'jordan@college.edu', password_hash: '$2a$10$D8wJ7fUCPyHfUW4HhGg5M.m0tHqj9Q/1g7l0Hz8JQxVg2a8W9xIuG' },
-      }[effectiveIdentifier];
+const fallbackUsers: Record<string, {
+  username: string;
+  email: string;
+  password_hash: string;
+}> = {
+  alex_cs: {
+    username: 'alex_cs',
+    email: 'alex@college.edu',
+    password_hash: '$2a$10$D8wJ7fUCPyHfUW4HhGg5M.m0tHqj9Q/1g7l0Hz8JQxVg2a8W9xIuG'
+  },
+  jordan_dev: {
+    username: 'jordan_dev',
+    email: 'jordan@college.edu',
+    password_hash: '$2a$10$D8wJ7fUCPyHfUW4HhGg5M.m0tHqj9Q/1g7l0Hz8JQxVg2a8W9xIuG'
+  },
+};
+
+const fallbackDemo = fallbackUsers[String(effectiveIdentifier)];
 
       if (fallbackDemo && password === 'password123') {
         const userSession = {

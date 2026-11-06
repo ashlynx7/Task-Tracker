@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { queryOne } from '@/lib/db';
 import { AUTH_COOKIE_NAME, createToken } from '@/lib/auth';
 
+export const runtime = 'nodejs';
+
 export async function POST(req: NextRequest) {
   try {
     const guestUsername = 'alex_cs';
