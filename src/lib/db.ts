@@ -5,7 +5,8 @@ import initSqlJs, { Database, SqlJsStatic } from 'sql.js';
 let dbInstance: Database | null = null;
 let SQL: SqlJsStatic | null = null;
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const isServerlessRuntime = Boolean(process.env.VERCEL || process.env.NEXT_PUBLIC_VERCEL_ENV);
+const DATA_DIR = isServerlessRuntime ? '/tmp/academiatask' : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'academiatask.sqlite');
 
 function saveDb(): void {
