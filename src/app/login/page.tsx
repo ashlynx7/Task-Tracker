@@ -76,10 +76,10 @@ export default function LoginPage() {
             <Timer className="w-6 h-6" />
           </div>
           <h1 className="font-serif-heading text-2xl font-bold tracking-tight text-[#172433]">
-            Module
+            AcademiaTask
           </h1>
           <p className="text-xs text-[#7A8796] mt-1">
-            Sign in to your To-Do & Project Suite
+            Sign in to your academic workspace
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export default function LoginPage() {
               Username or College Email
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-[#8E9BAC] absolute left-3.5 top-3 pointer-events-none" />
+              <User className="w-4 h-4 text-[#8E9BAC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
               <input
                 type="text"
                 value={identifier}
@@ -113,7 +113,7 @@ export default function LoginPage() {
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-[#8E9BAC] absolute left-3.5 top-3 pointer-events-none" />
+              <Lock className="w-4 h-4 text-[#8E9BAC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
               <input
                 type="password"
                 value={password}
@@ -167,8 +167,17 @@ export default function LoginPage() {
           </div>
         </div>
 
+        <form action="/api/auth/guest" method="POST" className="mt-5">
+          <button
+            type="submit"
+            className="w-full py-2.5 rounded-xl border border-[#E5E0D4] bg-[#F5F2EA] text-[#172433] text-xs font-semibold transition hover:bg-[#ECE7DC]"
+          >
+            Continue as Guest
+          </button>
+        </form>
+
         <p className="text-center text-xs text-[#7A8796] mt-6">
-          New to Module?{' '}
+          New to AcademiaTask?{' '}
           <Link href="/register" className="text-[#3E4B8E] hover:underline font-semibold">
             Create an account
           </Link>

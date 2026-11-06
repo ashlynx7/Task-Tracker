@@ -378,6 +378,11 @@ html, body {
   padding-left: 2.25rem;
 }
 
+.input-field {
+  position: relative;
+  z-index: 1;
+}
+
 .input-field:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px var(--color-primary-light);

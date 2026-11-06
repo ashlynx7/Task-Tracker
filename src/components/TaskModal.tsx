@@ -189,7 +189,7 @@ export default function TaskModal({
             <div>
               <label className="text-[11px] font-bold uppercase tracking-wider text-[#7A8796] mb-1.5 flex items-center gap-1">
                 <Folder className="w-3.5 h-3.5 text-[#3E4B8E]" />
-                Folder / Module <span className="text-red-500">*</span>
+                Folder / Course <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <button

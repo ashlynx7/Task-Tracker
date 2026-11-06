@@ -70,7 +70,7 @@ export default function RegisterPage() {
             <Timer className="w-6 h-6" />
           </div>
           <h1 className="font-serif-heading text-2xl font-bold tracking-tight text-[#172433]">
-            Join Module
+            Join AcademiaTask
           </h1>
           <p className="text-xs text-[#7A8796] mt-1">
             Create your account to organize coursework and collaborate
@@ -106,7 +106,7 @@ export default function RegisterPage() {
               )}
             </div>
             <div className="relative">
-              <span className="absolute left-3.5 top-2.5 text-xs font-bold text-[#8E9BAC]">@</span>
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8E9BAC] z-10 pointer-events-none">@</span>
               <input
                 type="text"
                 value={username}
@@ -123,7 +123,7 @@ export default function RegisterPage() {
               College Email Address
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-[#8E9BAC] absolute left-3.5 top-3 pointer-events-none" />
+              <Mail className="w-4 h-4 text-[#8E9BAC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
               <input
                 type="email"
                 value={email}
@@ -140,7 +140,7 @@ export default function RegisterPage() {
               Password (6+ characters)
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-[#8E9BAC] absolute left-3.5 top-3 pointer-events-none" />
+              <Lock className="w-4 h-4 text-[#8E9BAC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
               <input
                 type="password"
                 value={password}
@@ -163,6 +163,15 @@ export default function RegisterPage() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </>
             )}
+          </button>
+        </form>
+
+        <form action="/api/auth/guest" method="POST" className="mt-4">
+          <button
+            type="submit"
+            className="w-full py-2.5 rounded-xl border border-[#E5E0D4] bg-[#F5F2EA] text-[#172433] text-xs font-semibold transition hover:bg-[#ECE7DC]"
+          >
+            Continue as Guest
           </button>
         </form>
 

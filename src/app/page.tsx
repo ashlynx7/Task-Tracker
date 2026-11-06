@@ -28,7 +28,7 @@ export default function HomePage() {
             <Timer className="w-4 h-4" />
           </div>
           <span className="font-serif-heading text-xl font-bold tracking-tight text-[#172433]">
-            Module
+            AcademiaTask
           </span>
         </div>
 
@@ -67,6 +67,12 @@ export default function HomePage() {
             Try Demo Accounts (Alex & Jordan)
           </Link>
         </div>
+
+        <form action="/api/auth/guest" method="POST" className="mb-8">
+          <button type="submit" className="btn-secondary text-sm py-2.5 px-6">
+            Continue as Guest
+          </button>
+        </form>
 
         {/* Feature Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-left w-full">
@@ -110,7 +116,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="p-6 border-t border-[#E5E0D4] text-center text-xs text-[#7A8796]">
-        Module Workspace — Inspired by high-precision editorial design
+        AcademiaTask Workspace — Built for focused study and collaboration
       </footer>
     </div>
   );

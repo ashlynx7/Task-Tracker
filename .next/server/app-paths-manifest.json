@@ -1,8 +1,23 @@
 {
-  "/api/notifications/route": "app/api/notifications/route.js",
-  "/page": "app/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/guest/route": "app/api/auth/guest/route.js",
+  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/api/auth/logout/route": "app/api/auth/logout/route.js",
   "/api/auth/me/route": "app/api/auth/me/route.js",
-  "/dashboard/page": "app/dashboard/page.js",
+  "/api/auth/register/route": "app/api/auth/register/route.js",
+  "/api/folders/[folderId]/collaborators/route": "app/api/folders/[folderId]/collaborators/route.js",
+  "/api/folders/[folderId]/route": "app/api/folders/[folderId]/route.js",
+  "/api/folders/route": "app/api/folders/route.js",
+  "/api/notifications/route": "app/api/notifications/route.js",
+  "/api/tasks/[taskId]/attachments/[attachmentId]/route": "app/api/tasks/[taskId]/attachments/[attachmentId]/route.js",
+  "/api/tasks/[taskId]/attachments/route": "app/api/tasks/[taskId]/attachments/route.js",
+  "/api/tasks/[taskId]/comments/[commentId]/route": "app/api/tasks/[taskId]/comments/[commentId]/route.js",
+  "/api/tasks/[taskId]/comments/route": "app/api/tasks/[taskId]/comments/route.js",
+  "/api/tasks/[taskId]/route": "app/api/tasks/[taskId]/route.js",
   "/api/tasks/route": "app/api/tasks/route.js",
-  "/api/folders/route": "app/api/folders/route.js"
+  "/api/users/search/route": "app/api/users/search/route.js",
+  "/page": "app/page.js",
+  "/login/page": "app/login/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/register/page": "app/register/page.js"
 }
