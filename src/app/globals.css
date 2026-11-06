@@ -373,6 +373,11 @@ html, body {
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
+.input-field-with-icon {
+  padding-left: 2.5rem;
+  padding-right: 0.875rem;
+}
+
 .input-field.collaborator-search-input {
   padding-right: 2rem;
   padding-left: 2.25rem;

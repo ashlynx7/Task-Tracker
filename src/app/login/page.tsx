@@ -102,7 +102,7 @@ export default function LoginPage() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="alex_cs or alex@college.edu"
-                className="input-field pl-10 text-xs"
+                className="input-field input-field-with-icon text-xs"
                 required
               />
             </div>
@@ -119,7 +119,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="input-field pl-10 text-xs"
+                className="input-field input-field-with-icon text-xs"
                 required
               />
             </div>
@@ -167,9 +167,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <form action="/api/auth/login" method="POST" className="mt-5">
-          <input type="hidden" name="identifier" value="alex_cs" />
-          <input type="hidden" name="password" value="password123" />
+        <form action="/api/auth/guest" method="POST" className="mt-5">
           <button
             type="submit"
             className="w-full py-2.5 rounded-xl border border-[#E5E0D4] bg-[#F5F2EA] text-[#172433] text-xs font-semibold transition hover:bg-[#ECE7DC]"

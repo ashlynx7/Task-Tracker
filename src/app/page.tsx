@@ -68,9 +68,7 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <form action="/api/auth/login" method="POST" className="mb-8">
-          <input type="hidden" name="identifier" value="alex_cs" />
-          <input type="hidden" name="password" value="password123" />
+        <form action="/api/auth/guest" method="POST" className="mb-8">
           <button type="submit" className="btn-secondary text-sm py-2.5 px-6">
             Continue as Guest
           </button>
