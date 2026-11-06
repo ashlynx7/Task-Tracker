@@ -1,0 +1,8 @@
+{
+  "/api/notifications/route": "app/api/notifications/route.js",
+  "/page": "app/page.js",
+  "/api/auth/me/route": "app/api/auth/me/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/api/tasks/route": "app/api/tasks/route.js",
+  "/api/folders/route": "app/api/folders/route.js"
+}
