@@ -145,6 +145,9 @@ export default function LoginPage() {
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             Quick Demo Student Accounts
           </p>
+          <p className="text-[10px] text-[#7A8796] text-center mb-3">
+            Use Alex or Jordan to test the workspace quickly.
+          </p>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
