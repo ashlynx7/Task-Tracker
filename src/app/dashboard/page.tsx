@@ -2474,7 +2474,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-[var(--bg-canvas)] flex flex-col items-center justify-center text-[var(--text-heading)]">
         <div className="w-10 h-10 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin mb-3" />
         <p className="text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase">
-          Loading AcademiaTask Workspace...
+          Loading Task Tracker...
         </p>
       </div>
     );

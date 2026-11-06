@@ -70,7 +70,7 @@ export default function RegisterPage() {
             <Timer className="w-6 h-6" />
           </div>
           <h1 className="font-serif-heading text-2xl font-bold tracking-tight text-[#172433]">
-            Join AcademiaTask
+            Join Task Tracker
           </h1>
           <p className="text-xs text-[#7A8796] mt-1">
             Create your account to organize coursework and collaborate
@@ -166,7 +166,9 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <form action="/api/auth/guest" method="POST" className="mt-4">
+        <form action="/api/auth/login" method="POST" className="mt-4">
+          <input type="hidden" name="identifier" value="alex_cs" />
+          <input type="hidden" name="password" value="password123" />
           <button
             type="submit"
             className="w-full py-2.5 rounded-xl border border-[#E5E0D4] bg-[#F5F2EA] text-[#172433] text-xs font-semibold transition hover:bg-[#ECE7DC]"

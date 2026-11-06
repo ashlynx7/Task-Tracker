@@ -76,7 +76,7 @@ export default function LoginPage() {
             <Timer className="w-6 h-6" />
           </div>
           <h1 className="font-serif-heading text-2xl font-bold tracking-tight text-[#172433]">
-            AcademiaTask
+            Task Tracker
           </h1>
           <p className="text-xs text-[#7A8796] mt-1">
             Sign in to your academic workspace
@@ -167,7 +167,9 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <form action="/api/auth/guest" method="POST" className="mt-5">
+        <form action="/api/auth/login" method="POST" className="mt-5">
+          <input type="hidden" name="identifier" value="alex_cs" />
+          <input type="hidden" name="password" value="password123" />
           <button
             type="submit"
             className="w-full py-2.5 rounded-xl border border-[#E5E0D4] bg-[#F5F2EA] text-[#172433] text-xs font-semibold transition hover:bg-[#ECE7DC]"
@@ -177,7 +179,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-xs text-[#7A8796] mt-6">
-          New to AcademiaTask?{' '}
+          New to Task Tracker?{' '}
           <Link href="/register" className="text-[#3E4B8E] hover:underline font-semibold">
             Create an account
           </Link>
