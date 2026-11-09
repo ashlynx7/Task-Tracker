@@ -841,3 +841,46 @@ html, body {
     font-size: 13px;
   }
 }
+
+/* Mobile layout */
+html,
+body {
+  min-height: 100dvh;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (max-width: 640px) {
+  /* Scrollable overlay so tall dialogs are not cut off by phone viewport chrome */
+  .modal-overlay {
+    padding: 12px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-content,
+  .folder-task-detail-modal-content {
+    max-height: none;
+  }
+
+  .folder-task-detail-modal-content {
+    padding-top: 3rem;
+  }
+
+  /* 16px keeps iOS Safari from zooming when a field gains focus */
+  input,
+  select,
+  textarea,
+  .input-field {
+    font-size: 16px;
+  }
+
+  .sort-dropdown-trigger {
+    min-width: 132px;
+  }
+
+  .folder-menu-trigger {
+    width: 36px;
+    height: 36px;
+  }
+}
+

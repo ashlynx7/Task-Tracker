@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import TaskModal from '@/components/TaskModal';
 import TaskDrawer from '@/components/TaskDrawer';
 import FolderModal from '@/components/FolderModal';
+import InviteCollaboratorModal from '@/components/InviteCollaboratorModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import Toast, { ToastMessage } from '@/components/Toast';
 import { 
@@ -38,6 +39,7 @@ import {
   Flag,
   RotateCcw,
   Pencil,
+  UserPlus,
 
   LayoutGrid,
   List,
@@ -313,6 +315,7 @@ export default function DashboardPage() {
     folder: null,
     taskId: null,
   });
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [confirmation, setConfirmation] = useState<{
     title: string;
     description: string;
@@ -2512,9 +2515,9 @@ export default function DashboardPage() {
     ? Math.min((timerSeconds / sessionTargetSeconds) * 100, 100)
     : 0;
   return (
-    <div className={`min-h-screen bg-[#7799B0] ${appConfig.compactView ? 'p-1 sm:p-3' : 'p-2 sm:p-5'} flex items-center justify-center font-sans`}>
+    <div className={`min-h-screen bg-[#7799B0] p-0 sm:p-2 md:p-5 flex items-center justify-center font-sans`}>
       {/* Outer Rounded Application Frame matching mockup bezel */}
-      <div className="w-full max-w-[1440px] h-[94vh] bg-[var(--bg-canvas)] rounded-[24px] shadow-2xl flex overflow-hidden border border-[var(--border-light)] relative">
+      <div className="w-full max-w-[1440px] h-[100dvh] sm:h-[94vh] bg-[var(--bg-canvas)] rounded-none sm:rounded-[24px] shadow-2xl flex overflow-hidden border-0 sm:border border-[var(--border-light)] relative">
         {/* 1. Left Sidebar */}
         <div className="hidden md:flex h-full">
           <Sidebar
@@ -2593,19 +2596,19 @@ export default function DashboardPage() {
         {/* 2. Main Content Workspace */}
         <div className="flex-1 flex flex-col h-full overflow-hidden bg-[var(--bg-canvas)]">
           {/* Top Bar Navigation */}
-          <header className={`px-6 ${appConfig.compactView ? 'py-2' : 'py-4'} flex items-center justify-between border-b border-[var(--border-light)] gap-4`}>
-            <div className="flex items-center gap-3">
+          <header className={`px-4 sm:px-6 ${appConfig.compactView ? 'py-2' : 'py-3 sm:py-4'} flex items-center justify-between border-b border-[var(--border-light)] gap-2 sm:gap-4`}>
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               {/* Mobile toggle */}
               <button
                 onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-                className="p-1.5 rounded-lg text-[var(--text-heading)] hover:bg-black/5 md:hidden"
+                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg text-[var(--text-heading)] hover:bg-black/5 md:hidden"
                 title="Toggle navigation"
                 aria-label="Toggle navigation"
               >
                 {mobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
 
-              <h1 className="font-serif-heading text-2xl sm:text-3xl font-bold text-[var(--text-heading)] tracking-tight">
+              <h1 className="min-w-0 truncate font-serif-heading text-xl sm:text-3xl font-bold text-[var(--text-heading)] tracking-tight">
                 {activeNav === 'history'
                   ? 'History'
                   : activeNav === 'folder'
@@ -2646,7 +2649,18 @@ export default function DashboardPage() {
             </div>
 
             {/* Right: + Create New button, Bell (no avatar) */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-3">
+              {activeNav === 'mutual' && (
+                <button
+                  onClick={() => setIsInviteModalOpen(true)}
+                  aria-label="Invite collaborator"
+                  title="Invite collaborator"
+                  className="btn-secondary text-xs py-2 px-2.5 sm:px-3 min-h-[44px] sm:min-h-0 flex items-center gap-1.5"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Invite</span>
+                </button>
+              )}
               {activeNav !== 'history' && (
                 <button
                   onClick={() => {
@@ -2656,10 +2670,12 @@ export default function DashboardPage() {
                       setIsTaskModalOpen(true);
                     }
                   }}
-                  className="btn-primary-blue text-xs py-2 px-4 shadow-sm"
+                  aria-label={showFolderGallery ? 'New folder' : 'Create new task'}
+                  title={showFolderGallery ? 'New folder' : 'Create new task'}
+                  className="btn-primary-blue text-xs py-2 px-2.5 sm:px-4 min-h-[44px] sm:min-h-0 shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>{showFolderGallery ? 'New Folder' : 'Create New'}</span>
+                  <span className="hidden sm:inline">{showFolderGallery ? 'New Folder' : 'Create New'}</span>
                 </button>
               )}
 
@@ -2671,7 +2687,7 @@ export default function DashboardPage() {
                     setShowNotificationDropdown(shouldOpen);
                     if (shouldOpen) void loadNotifications();
                   }}
-                  className={`w-8 h-8 rounded-full border text-[var(--text-body)] hover:text-[var(--text-heading)] flex items-center justify-center relative transition-colors ${
+                  className={`w-11 h-11 sm:w-8 sm:h-8 rounded-full border text-[var(--text-body)] hover:text-[var(--text-heading)] flex items-center justify-center relative transition-colors ${
                     showNotificationDropdown
                       ? 'border-[var(--color-primary)] bg-[var(--color-primary-light)] text-[var(--color-primary)]'
                       : 'border-[var(--border-light)] bg-[var(--bg-card-subtle)]'
@@ -2688,6 +2704,33 @@ export default function DashboardPage() {
               </div>
             </div>
           </header>
+
+          {/* Mobile search (desktop search lives in the header) */}
+          <div className="border-b border-[var(--border-light)] px-4 py-2.5 sm:hidden">
+            <div className="relative">
+              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-4 top-3 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={
+                  showFolderGallery
+                    ? 'Search folders...'
+                    : activeNav === 'history'
+                    ? 'Search history...'
+                    : 'Search tasks...'
+                }
+                aria-label={
+                  showFolderGallery
+                    ? 'Search folders'
+                    : activeNav === 'history'
+                    ? 'Search history'
+                    : 'Search tasks'
+                }
+                className="w-full bg-[var(--bg-card-subtle)] text-xs text-[var(--text-heading)] placeholder-[var(--text-muted)] rounded-full pl-11 pr-4 py-2.5 border border-[var(--border-light)] outline-none focus:border-[var(--color-primary)] transition-colors font-medium"
+              />
+            </div>
+          </div>
 
           {showNotificationDropdown && (
             <div
@@ -2909,7 +2952,7 @@ export default function DashboardPage() {
 
           {showFolderGallery && (
             <section
-              className={`folder-gallery flex-1 overflow-y-auto p-5 sm:p-8 ${sidebarCollapsed ? 'folder-gallery-collapsed pl-3 sm:pl-4' : ''}`}
+              className={`folder-gallery flex-1 overflow-y-auto p-3 sm:p-8 ${sidebarCollapsed ? 'folder-gallery-collapsed pl-3 sm:pl-4' : ''}`}
               aria-label="Folders"
             >
               {folders.length > 0 && (
@@ -3769,13 +3812,22 @@ export default function DashboardPage() {
                 <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
                   Mutual tasks appear when you share folders with collaborators. Add a collaborator to a folder to start working together.
                 </p>
-                <button
-                  onClick={() => setFolderModal({ isOpen: true, folder: null })}
-                  className="btn-primary-blue text-xs py-2 px-4"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Create Shared Folder</span>
-                </button>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    onClick={() => setFolderModal({ isOpen: true, folder: null })}
+                    className="btn-primary-blue text-xs py-2 px-4"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create Shared Folder</span>
+                  </button>
+                  <button
+                    onClick={() => setIsInviteModalOpen(true)}
+                    className="btn-secondary text-xs py-2 px-4 flex items-center gap-1.5"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>Invite Collaborator</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -3785,7 +3837,7 @@ export default function DashboardPage() {
             <div
               className={isFolderTaskDetail
                 ? `modal-overlay folder-task-detail-overlay ${isFolderTaskClosing ? 'folder-task-detail-closing' : ''}`
-                : `dashboard-task-layout ${isQueueCollapsed ? 'queue-collapsed' : ''} flex-1 overflow-y-auto ${appConfig.compactView ? 'p-3 sm:p-4' : 'p-4 sm:p-6'} grid grid-cols-1 gap-${appConfig.compactView ? '4' : '6'}`}
+                : `dashboard-task-layout ${isQueueCollapsed ? 'queue-collapsed' : ''} flex-1 overflow-y-auto ${appConfig.compactView ? 'p-3 sm:p-4 gap-4' : 'p-4 sm:p-6 gap-5 sm:gap-6'} grid grid-cols-1`}
               onClick={isFolderTaskDetail ? (event) => {
                 if (event.target === event.currentTarget) closeFolderTaskDetail();
               } : undefined}
@@ -4346,7 +4398,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Right Column: Task Queue */}
-              <div className={`min-w-0 flex flex-col space-y-${appConfig.compactView ? '4' : '6'} ${isFolderTaskDetail ? 'hidden' : ''}`}>
+              <div className={`min-w-0 flex flex-col ${appConfig.compactView ? 'space-y-4' : 'space-y-5 sm:space-y-6'} ${isFolderTaskDetail ? 'hidden' : ''}`}>
 
                 {/* Task Queue Header */}
                 <div className="space-y-3">
@@ -4819,6 +4871,26 @@ export default function DashboardPage() {
           onRefreshFolders={() => {
             loadFolders();
             loadTasks(activeFolderId);
+          }}
+        />
+      )}
+
+      {isInviteModalOpen && (
+        <InviteCollaboratorModal
+          folders={folders
+            .filter((folder) => folder.is_owner === 1)
+            .map((folder) => ({
+              id: folder.id,
+              name: folder.name,
+              color_hex: folder.color_hex,
+              owner_id: folder.owner_id,
+              collaborators: folder.collaborators,
+            }))}
+          currentUserId={user.id}
+          onClose={() => setIsInviteModalOpen(false)}
+          onInvited={() => {
+            void loadFolders();
+            if (activeNav === 'mutual') void loadMutualTasks();
           }}
         />
       )}

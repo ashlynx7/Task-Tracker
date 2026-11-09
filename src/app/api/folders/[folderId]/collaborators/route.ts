@@ -64,6 +64,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     [folderId, targetUser.id]
   );
 
+  // Let the invited user know they now have access
+  const notificationId = `notif_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  await execute(
+    `INSERT INTO notifications (id, recipient_id, actor_id, task_id, type, message)
+     VALUES (?, ?, ?, NULL, 'folder_invite', ?)`,
+    [notificationId, targetUser.id, session.id, `@${session.username} added you to the folder "${folder.name}".`]
+  );
+
   // Return all collaborators
   const collaborators = await query(
     `SELECT u.id, u.username, u.email, u.avatar_color, fc.joined_at
