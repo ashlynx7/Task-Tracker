@@ -15,6 +15,14 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get('status') || 'all'; // 'all', 'pending', 'completed'
   const includeDeleted = searchParams.get('deleted') === 'true';
 
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const params: any[] = [session.id, session.id, session.id];
+  let deletedFilter = 't.deleted_at IS NULL';
+  if (includeDeleted) {
+    deletedFilter = 't.deleted_at IS NOT NULL AND t.deleted_at >= ?';
+    params.push(cutoff);
+  }
+
   // Build SQL query: Tasks must be in folders owned by user or shared with user
   let sql = `
     SELECT t.id, t.title, t.description, t.due_date, t.is_completed, t.completed_at, t.time_logged_seconds, t.folder_id, t.created_by, t.created_at, t.deleted_at,
@@ -30,10 +38,8 @@ export async function GET(req: NextRequest) {
       OR f.owner_id = ?
       OR f.id IN (SELECT folder_id FROM folder_collaborators WHERE user_id = ?)
     )
-      AND ${includeDeleted ? 't.deleted_at IS NOT NULL AND t.deleted_at >= datetime("now", "-7 days")' : '(t.deleted_at IS NULL OR t.deleted_at = \'\')'}
+      AND ${deletedFilter}
   `;
-
-  const params: any[] = [session.id, session.id, session.id];
 
   if (folderId && folderId !== 'all') {
     sql += ' AND t.folder_id = ?';

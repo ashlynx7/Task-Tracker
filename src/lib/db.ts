@@ -2,6 +2,188 @@ import fs from 'fs';
 import path from 'path';
 import initSqlJs, { Database, SqlJsStatic } from 'sql.js';
 
+const POSTGRES_URL =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRES_URL_NON_POOLING ||
+  '';
+const usePostgres = POSTGRES_URL.length > 0;
+
+/* -------------------------------------------------------------------------- */
+/* Postgres (Vercel + Supabase)                                               */
+/* -------------------------------------------------------------------------- */
+
+type PgPool = import('pg').Pool;
+
+let pgPool: PgPool | null = null;
+let pgInit: Promise<void> | null = null;
+let pgReady = false;
+
+const PG_SCHEMA = `
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    avatar_color TEXT DEFAULT '#3E4B8E',
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS folders (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    color_hex TEXT NOT NULL DEFAULT '#3E4B8E',
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    parent_id TEXT REFERENCES folders(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ
+  );
+
+  CREATE TABLE IF NOT EXISTS folder_collaborators (
+    folder_id TEXT NOT NULL REFERENCES folders(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (folder_id, user_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS tasks (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    due_date TIMESTAMPTZ NOT NULL,
+    is_completed INTEGER DEFAULT 0,
+    time_logged_seconds INTEGER DEFAULT 0,
+    folder_id TEXT REFERENCES folders(id) ON DELETE CASCADE,
+    created_by TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ
+  );
+
+  CREATE TABLE IF NOT EXISTS comments (
+    id TEXT PRIMARY KEY,
+    task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    author_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS task_attachments (
+    id TEXT PRIMARY KEY,
+    task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    file_name TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_size INTEGER NOT NULL,
+    file_type TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY,
+    recipient_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    actor_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    task_id TEXT REFERENCES tasks(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    is_read INTEGER DEFAULT 0
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
+  CREATE INDEX IF NOT EXISTS idx_tasks_folder ON tasks(folder_id);
+  CREATE INDEX IF NOT EXISTS idx_tasks_deleted ON tasks(deleted_at);
+  CREATE INDEX IF NOT EXISTS idx_folders_parent ON folders(parent_id);
+  CREATE INDEX IF NOT EXISTS idx_folders_deleted ON folders(deleted_at);
+  CREATE INDEX IF NOT EXISTS idx_comments_task ON comments(task_id);
+  CREATE INDEX IF NOT EXISTS idx_attachments_task ON task_attachments(task_id);
+  CREATE INDEX IF NOT EXISTS idx_notifications_recipient_created ON notifications(recipient_id, created_at);
+
+  ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE folders ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE folder_collaborators ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE task_attachments ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+`;
+
+function toPgPlaceholders(sql: string): string {
+  let index = 0;
+  return sql.replace(/\?/g, () => `$${++index}`);
+}
+
+async function cleanupSoftDeletedRecordsPg(pool: PgPool) {
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  await pool.query(
+    'DELETE FROM task_attachments WHERE task_id IN (SELECT id FROM tasks WHERE deleted_at IS NOT NULL AND deleted_at <= $1)',
+    [cutoff]
+  );
+  await pool.query(
+    'DELETE FROM comments WHERE task_id IN (SELECT id FROM tasks WHERE deleted_at IS NOT NULL AND deleted_at <= $1)',
+    [cutoff]
+  );
+  await pool.query('DELETE FROM tasks WHERE deleted_at IS NOT NULL AND deleted_at <= $1', [cutoff]);
+  await pool.query('DELETE FROM folders WHERE deleted_at IS NOT NULL AND deleted_at <= $1', [cutoff]);
+}
+
+function normalizePgUrl(rawUrl: string): string {
+  try {
+    const url = new URL(rawUrl);
+    url.searchParams.delete('sslmode');
+    url.searchParams.delete('supa');
+    url.searchParams.delete('pgbouncer');
+    return url.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
+async function ensurePostgres(): Promise<PgPool> {
+  if (pgReady && pgPool) {
+    return pgPool;
+  }
+
+  if (!pgInit) {
+    pgInit = (async () => {
+      const { Pool } = await import('pg');
+      const pool = new Pool({
+        connectionString: normalizePgUrl(POSTGRES_URL),
+        max: 5,
+        ssl: { rejectUnauthorized: false },
+      });
+
+      pool.on('error', (err) => {
+        console.error('Unexpected Postgres pool error:', err);
+      });
+
+      await pool.query(PG_SCHEMA);
+      await cleanupSoftDeletedRecordsPg(pool);
+
+      pgPool = pool;
+      pgReady = true;
+
+      const { ensureSeeded } = await import('./seed');
+      await ensureSeeded();
+    })().catch((err) => {
+      pgInit = null;
+      pgPool = null;
+      pgReady = false;
+      throw err;
+    });
+  }
+
+  await pgInit;
+  if (!pgPool) {
+    throw new Error('Postgres pool failed to initialize.');
+  }
+  return pgPool;
+}
+
+/* -------------------------------------------------------------------------- */
+/* SQLite (local development fallback)                                        */
+/* -------------------------------------------------------------------------- */
+
 let dbInstance: Database | null = null;
 let SQL: SqlJsStatic | null = null;
 
@@ -23,7 +205,7 @@ function saveDb(): void {
   }
 }
 
-export async function getDb(): Promise<Database> {
+async function getSqliteDb(): Promise<Database> {
   if (dbInstance) {
     return dbInstance;
   }
@@ -211,13 +393,23 @@ function initSchema(db: Database) {
   saveDb();
 }
 
+/* -------------------------------------------------------------------------- */
+/* Public API                                                                 */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Execute a SELECT query and return typed row objects
  */
 export async function query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-  const db = await getDb();
+  if (usePostgres) {
+    const pool = await ensurePostgres();
+    const result = await pool.query(toPgPlaceholders(sql), params);
+    return result.rows as T[];
+  }
+
+  const db = await getSqliteDb();
   const stmt = db.prepare(sql);
-  
+
   if (params.length > 0) {
     stmt.bind(params);
   }
@@ -242,7 +434,13 @@ export async function queryOne<T = any>(sql: string, params: any[] = []): Promis
  * Execute an INSERT, UPDATE, or DELETE query and persist changes
  */
 export async function execute(sql: string, params: any[] = []): Promise<{ rowsModified: number }> {
-  const db = await getDb();
+  if (usePostgres) {
+    const pool = await ensurePostgres();
+    const result = await pool.query(toPgPlaceholders(sql), params);
+    return { rowsModified: result.rowCount ?? 0 };
+  }
+
+  const db = await getSqliteDb();
   db.run(sql, params);
   const rowsModified = db.getRowsModified();
   saveDb();

@@ -11,6 +11,14 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const includeDeleted = searchParams.get('deleted') === 'true';
 
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const folderParams: any[] = [session.id, session.id, session.id];
+  let deletedFilter = 'f.deleted_at IS NULL';
+  if (includeDeleted) {
+    deletedFilter = 'f.deleted_at IS NOT NULL AND f.deleted_at >= ?';
+    folderParams.push(cutoff);
+  }
+
   const folders = await query(
     `SELECT DISTINCT f.id, f.name, f.color_hex, f.owner_id, f.parent_id, f.created_at, f.deleted_at,
             u.username as owner_username,
@@ -19,9 +27,9 @@ export async function GET(req: NextRequest) {
      LEFT JOIN users u ON f.owner_id = u.id
      LEFT JOIN folder_collaborators fc ON f.id = fc.folder_id
      WHERE (f.owner_id = ? OR fc.user_id = ?)
-       AND ${includeDeleted ? 'f.deleted_at IS NOT NULL AND f.deleted_at >= datetime("now", "-7 days")' : '(f.deleted_at IS NULL OR f.deleted_at = \'\')'}
+       AND ${deletedFilter}
      ORDER BY f.created_at ASC`,
-    [session.id, session.id, session.id]
+    folderParams
   );
 
   // Fetch collaborators and task counts for each folder
@@ -47,8 +55,8 @@ export async function GET(req: NextRequest) {
         ...folder,
         is_shared: collaborators.length > 0 || folder.is_owner === 0,
         collaborators,
-        total_tasks: stats?.total_tasks || 0,
-        pending_tasks: stats?.pending_tasks || 0,
+        total_tasks: Number(stats?.total_tasks || 0),
+        pending_tasks: Number(stats?.pending_tasks || 0),
       };
     })
   );

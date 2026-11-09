@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/auth';
 import { execute, queryOne } from '@/lib/db';
+import { getFile, removeFile, useSupabaseStorage } from '@/lib/storage';
 import fs from 'fs';
 import path from 'path';
 
@@ -39,18 +40,31 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Attachment not found.' }, { status: 404 });
   }
 
-  const filePath = path.join(UPLOADS_DIR, taskId, attachment.file_path);
-  if (!fs.existsSync(filePath)) {
-    return NextResponse.json({ error: 'File on disk not found.' }, { status: 404 });
+  let fileBuffer: Buffer;
+  let storedType: string | null = null;
+
+  if (useSupabaseStorage) {
+    try {
+      const stored = await getFile(taskId, attachment.file_path);
+      fileBuffer = stored.buffer;
+      storedType = stored.contentType;
+    } catch {
+      return NextResponse.json({ error: 'File not found in storage.' }, { status: 404 });
+    }
+  } else {
+    const filePath = path.join(UPLOADS_DIR, taskId, attachment.file_path);
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json({ error: 'File on disk not found.' }, { status: 404 });
+    }
+    fileBuffer = fs.readFileSync(filePath);
   }
 
-  const fileBuffer = fs.readFileSync(filePath);
   const download = req.nextUrl.searchParams.get('download') === '1';
   const disposition = download ? 'attachment' : 'inline';
 
   return new NextResponse(fileBuffer, {
     headers: {
-      'Content-Type': attachment.file_type || 'application/octet-stream',
+      'Content-Type': attachment.file_type || storedType || 'application/octet-stream',
       'Content-Disposition': `${disposition}; filename="${encodeURIComponent(attachment.file_name)}"`,
       'Content-Length': fileBuffer.length.toString(),
     },
@@ -85,13 +99,17 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     );
   }
 
-  const filePath = path.join(UPLOADS_DIR, taskId, attachment.file_path);
   try {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    if (useSupabaseStorage) {
+      await removeFile(taskId, attachment.file_path);
+    } else {
+      const filePath = path.join(UPLOADS_DIR, taskId, attachment.file_path);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
   } catch (err) {
-    console.warn('Failed to remove attachment file from disk:', err);
+    console.warn('Failed to remove attachment file:', err);
   }
 
   await execute(`DELETE FROM task_attachments WHERE id = ?`, [attachmentId]);

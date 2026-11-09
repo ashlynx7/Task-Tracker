@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
        AND t.is_completed = 0
        AND t.due_date >= ?
        AND t.due_date < ?
-     ORDER BY datetime(t.due_date) ASC`,
+     ORDER BY t.due_date ASC`,
     [session.id, session.id, dueStart, dueEnd]
   );
   const dueTaskIds = new Set(dueTasks.map((task) => task.id));
@@ -81,8 +81,8 @@ export async function GET(req: NextRequest) {
      LEFT JOIN tasks t ON t.id = n.task_id
      WHERE n.recipient_id = ?
      ORDER BY CASE WHEN n.type = 'deadline' THEN 0 ELSE 1 END,
-              CASE WHEN n.type = 'deadline' THEN datetime(t.due_date) END ASC,
-              datetime(n.created_at) DESC
+              CASE WHEN n.type = 'deadline' THEN t.due_date END ASC,
+              n.created_at DESC
      LIMIT 50`,
     [session.id]
   );

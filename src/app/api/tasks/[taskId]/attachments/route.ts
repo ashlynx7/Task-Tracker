@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/auth';
 import { execute, query, queryOne } from '@/lib/db';
 import { notifyFolderMembers } from '@/lib/notifications';
+import { putFile, useSupabaseStorage } from '@/lib/storage';
 import fs from 'fs';
 import path from 'path';
 
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     const taskDir = path.join(UPLOADS_DIR, taskId);
-    if (!fs.existsSync(taskDir)) {
+    if (!useSupabaseStorage && !fs.existsSync(taskDir)) {
       fs.mkdirSync(taskDir, { recursive: true });
     }
 
@@ -98,13 +99,17 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       const attachmentId = `att_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const safeFileName = path.basename(file.name).replace(/[^a-zA-Z0-9._-]/g, '_');
       const diskFileName = `${attachmentId}_${safeFileName}`;
-      const filePath = path.join(taskDir, diskFileName);
+      const fileType = file.type || 'application/octet-stream';
 
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      fs.writeFileSync(filePath, buffer);
 
-      const fileType = file.type || 'application/octet-stream';
+      if (useSupabaseStorage) {
+        await putFile(taskId, diskFileName, buffer, fileType);
+      } else {
+        const filePath = path.join(taskDir, diskFileName);
+        fs.writeFileSync(filePath, buffer);
+      }
 
       await execute(
         `INSERT INTO task_attachments (id, task_id, user_id, file_name, file_path, file_size, file_type)
